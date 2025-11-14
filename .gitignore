@@ -1,0 +1,14 @@
+```gitignore
+# Python 가상 환경
+.venv/
+
+# 민감한 API 키 파일
+.env
+
+# 스크립트 결과물 (데이터 파일)
+*.json
+*.jsonl
+
+# Python 캐시
+__pycache__/
+*.pyc
