@@ -8,6 +8,7 @@
 # 스크립트 결과물 (데이터 파일)
 *.json
 *.jsonl
+*.csv
 
 # Python 캐시
 __pycache__/
