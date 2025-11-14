@@ -9,6 +9,7 @@
 *.json
 *.jsonl
 *.csv
+*.txt
 
 # Python 캐시
 __pycache__/

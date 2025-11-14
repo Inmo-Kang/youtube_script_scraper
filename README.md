@@ -1,6 +1,6 @@
 # 📑 유튜브 채널 스크래퍼 사용 설명서 (README)
 
-이 프로그램은 2단계로 작동하며, 특정 유튜브 채널의 모든 영상 정보를 수집하고(1단계), 해당 영상들의 스크립트(자막)를 추출합니다(2단계).
+이 프로그램은 2~3단계로 작동하며, 특정 유튜브 채널의 모든 영상 정보를 수집하고(1단계), 해당 영상들의 스크립트(자막)를 추출하며(2단계), 이 결과를 Google Docs용 텍스트 파일로 변환합니다(4단계).
 
 ## 1. ⚙️ 최초 환경 설정 (한 번만)
 
@@ -20,7 +20,7 @@ python -m venv .venv
 # (macOS/Linux)
 source .venv/bin/activate
 # (Windows)
-# .\.venv\Scripts\activate
+# .\.venv/Scripts/activate
 (터미널 앞에 (.venv)가 보이면 성공입니다.)
 
 1.2. 필수 라이브러리 설치
@@ -34,6 +34,8 @@ pip install google-api-python-client python-dotenv
 # 2. 2단계(get_transcripts.py)에 필요한 라이브러리
 # (주의: 1.2.3 버전의 올바른 문법을 사용하도록 스크립트가 작성되었습니다.)
 pip install youtube-transcript-api
+(4단계 convert_to_doc.py 스크립트는 추가 라이브러리가 필요 없습니다.)
+
 1.3. API 키 설정 (.env 파일)
 scraper.py (1단계) 스크립트는 Google의 YouTube Data API를 사용합니다.
 
@@ -46,7 +48,7 @@ Google Cloud Console에서 발급받은 'YouTube Data API v3' 키를 아래와 �
 Ini, TOML
 
 YOUTUBE_API_KEY="AIzaSy... (여기에 1단계 API 키를 붙여넣으세요)"
-2. 🚀 스크립트 실행 방법
+2. 🚀 스크립트 실행 방법 (1단계, 2단계)
 설정이 완료되면, 아래의 2단계를 순서대로 실행합니다.
 
 🎬 1단계: scraper.py (채널 정보 및 영상 목록 수집)
@@ -57,16 +59,10 @@ YOUTUBE_API_KEY="AIzaSy... (여기에 1단계 API 키를 붙여넣으세요)"
 Bash
 
 python scraper.py [채널_ID_또는_핸들]
-[채널_ID_또는_핸들]: (필수) 정보를 수집할 채널의 UC...로 시작하는 ID 또는 @...로 시작하는 핸들을 입력합니다.
-
 실행 예시:
 
 Bash
 
-# 핸들(@moneycoach)을 기준으로 실행
-python scraper.py @moneycoach
-
-# 채널 ID를 기준으로 실행
 python scraper.py UCLrRutm_EiL2294pFrTEN4w
 결과물: UCLrRutm_EiL2294pFrTEN4w_videos.json과 같은 파일이 생성됩니다.
 
@@ -78,46 +74,36 @@ python scraper.py UCLrRutm_EiL2294pFrTEN4w
 Bash
 
 python get_transcripts.py [입력_JSON_파일] [옵션]
-[입력_JSON_파일]: (필수) 1단계에서 생성된 ..._videos.json 파일 경로를 입력합니다.
-
-옵션 (선택 사항):
-
--o [파일명] 또는 --output_file [파일명]: 결과를 저장할 파일 이름을 지정합니다. (기본값: result_가 붙은 .jsonl 파일)
-
---batch_size [숫자]: 한 번에 처리할 영상 개수를 지정합니다. (기본값: 0 = 처리 안 된 영상 전체)
-
 실행 예시:
 
 Bash
 
-# 1. 1단계의 결과물로 "전체 영상"의 스크립트를 추출 (가장 일반적인 사용법)
+# 1. 1단계의 결과물로 "전체 영상"의 스크립트를 추출
 python get_transcripts.py UCLrRutm_EiL2294pFrTEN4w_videos.json
 
 # 2. "10개"만 테스트로 추출
 python get_transcripts.py UCLrRutm_EiL2294pFrTEN4w_videos.json --batch_size 10
-
-# 3. "my_results.jsonl"라는 이름으로 결과 파일 저장
-python get_transcripts.py UCLrRutm_EiL2294pFrTEN4w_videos.json -o my_results.jsonl
-누적 저장: 이 스크립트를 다시 실행하면, 출력 파일(result_...jsonl)을 읽어 이미 처리된 영상은 건너뛰고 새로 추가된 영상만 처리합니다.
-
-3. 📋 결과물 파일 설명
-1. ..._videos.json (1단계 결과물)
+3. 📋 결과물 파일 설명 (1, 2단계)
+..._videos.json (1단계 결과물)
 채널의 모든 영상 정보가 하나의 큰 리스트로 저장된 일반 JSON 파일입니다.
 
-is_short, duration_seconds 등의 정보가 포함되어 있습니다.
-
-2. result_...jsonl (2단계 결과물)
+result_...jsonl (2단계 결과물)
 스크립트 추출 결과가 한 줄에 영상 하나씩 누적 저장되는 JSONL (JSON Lines) 파일입니다.
 
-파일을 열어보면 2가지 유형의 결과를 볼 수 있습니다.
+이 파일은 4단계 스크립트의 입력으로 사용됩니다.
 
-[성공 예시] (자막이 있어서 스크립트가 저장됨)
+4. (선택) 📑 convert_to_doc.py (결과물 변환)
+이 스크립트는 2단계에서 생성된 result_...jsonl 파일을 읽어, Google Docs나 일반 편집기에 복사/붙여넣기 할 수 있는 하나의 .txt 파일로 변환합니다.
 
-JSON
+실행 명령어
+Bash
 
-{"title": "네이버 플레이스 상위 노출 방법...", "script": "여러분, 네이버가 작정했습니다. ..."}
-[실패 예시] (자막이 없어서 오류가 기록됨 - 정상적인 실패)
+python convert_to_doc.py [입력_JSONL_파일]
+[입력_JSONL_파일]: (필수) 2단계에서 생성된 result_...jsonl 파일 경로를 입력합니다.
 
-JSON
+실행 예시
+Bash
 
-{"title": "자막이 없는 어떤 영상...", "script": "ERROR: Transcript not available or disabled. (NoTranscriptFound)"}
+python convert_to_doc.py result_UCLrRutm_EiL2294pFrTEN4w_videos.jsonl
+결과물
+doc_result_UCLrRutm_EiL2294pFrTEN4w_videos.txt와 같은 텍스트 파일이 생성됩니다. 이 파일을 열어 내용을 복사한 뒤 Google Docs에 붙여넣으면, 모든 영상의 제목, 설명, 스크립트가 서식화되어 정리됩니다.
